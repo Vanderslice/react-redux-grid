@@ -74,9 +74,8 @@ export const dismissEditor = (state, { stateKey }) => {
     if (previousData
         && previousProxy
         && previousData.size > previousProxy.size) {
-        previousTotal = previousProxy.size;
+        previousTotal = previousTotal - 1;
     }
-
     const record = state.get(stateKey);
 
     if (record) {
@@ -84,8 +83,8 @@ export const dismissEditor = (state, { stateKey }) => {
             data: previousProxy,
             proxy: previousProxy,
             currentRecords: previousProxy,
-            total: previousTotal,
             isEditing: false,
+            total: previousTotal,
             lastUpdate: generateLastUpdate()
         });
 
@@ -160,17 +159,23 @@ export const addNewRow = (state, { rowId, stateKey, rowIndex }) => {
         data = new List();
     }
 
-    rowIndex = rowIndex ===undefined
+    const updatedTotal = existingState
+        && existingState.get('total')
+        ? existingState.get('total')
+        : 0;
+
+    rowIndex = rowIndex === undefined
         ? 0
         : rowIndex;
 
     const newData = data.insert(rowIndex, newRow);
+
     const updated = existingState.merge({
         data: newData,
         proxy: data,
         isEditing: true,
-        lastUpdate: generateLastUpdate(),
-        total: newData.size
+        total: updatedTotal + 1,
+        lastUpdate: generateLastUpdate()
     });
 
     return state.setIn([stateKey], updated);
@@ -245,7 +250,7 @@ export const setTreeNodeVisibility = (state, {
     return state.setIn([stateKey], updated);
 };
 
-export const saveRow = (state, { rowIndex, stateKey, values}) => {
+export const saveRow = (state, { rowIndex, stateKey, values }) => {
     const data = state
         .getIn([stateKey, 'data'])
         .set(rowIndex, fromJS(values));
